@@ -1,3 +1,4 @@
+import 'package:cubit_group_5_mohandseen/controllers/cart/cart_cubit.dart';
 import 'package:cubit_group_5_mohandseen/controllers/home/home_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,42 +9,91 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = HomeCubit.get(context);
+    cubit.getProducts();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cubit Sample"),
+        title: const Text("Home"),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: () {
-                cubit.add();
-                // counter++;
-                // setState(() {});
-              },
-              icon: const Icon(Icons.add),
-            ),
-            BlocBuilder<HomeCubit, HomeState>(
-              builder: (context, state) {
-                print(state);
-                return Text("${cubit.counter}",
-                    style: TextStyle(
-                        fontSize: 50,
-                        color: state is AddState ? Colors.green : Colors.red));
-              },
-            ),
-            IconButton(
-              onPressed: () {
-                cubit.sub();
+      body: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              SearchBar(
+                hintText: "Enter name , category",
+                trailing: const [Icon(Icons.search)],
+                onChanged: (value) {
+                  cubit.search(value);
+                },
+              ),
+              const SizedBox(height: 20),
+              BlocBuilder<HomeCubit, HomeState>(
+                builder: (context, state) {
+                  if (state is GetProductsLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (state is GetProductsError) {
+                    return const Center(child: Text("Please try again later"));
+                  }
 
-                // counter--;
-                // setState(() {});
-              },
-              icon: const Icon(Icons.minimize),
-            ),
-          ],
+                  if (cubit.filterProducts.isEmpty) {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final item = cubit.products[index];
+
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: NetworkImage(item.image ?? ""),
+                            ),
+                            title: Text("${item.title} - ${item.price}"),
+                            subtitle: Text("${item.category}"),
+                            trailing: IconButton(
+                              onPressed: () {
+                                CartCubit.get(context).addToCart(item);
+                              },
+                              icon: const Icon(Icons.add_shopping_cart,
+                                  color: Colors.deepPurple),
+                            ),
+                          ),
+                        );
+                      },
+                      itemCount: cubit.products.length,
+                    );
+                  } else {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final item = cubit.filterProducts[index];
+
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: NetworkImage(item.image ?? ""),
+                            ),
+                            title: Text("${item.title} - ${item.price}"),
+                            subtitle: Text("${item.category}"),
+                            trailing: IconButton(
+                              onPressed: () {
+                                CartCubit.get(context).addToCart(item);
+                              },
+                              icon: const Icon(Icons.add_shopping_cart,
+                                  color: Colors.deepPurple),
+                            ),
+                          ),
+                        );
+                      },
+                      itemCount: cubit.filterProducts.length,
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

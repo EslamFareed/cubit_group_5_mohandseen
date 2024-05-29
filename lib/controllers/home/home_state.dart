@@ -6,5 +6,8 @@ sealed class HomeState {}
 final class HomeInitial extends HomeState {}
 
 
-class AddState extends HomeState{}
-class SubState extends HomeState{}
+class GetProductsLoading extends HomeState{}
+class GetProductsSuccess extends HomeState{}
+class GetProductsError extends HomeState{}
+
+class FilterProductsState extends HomeState{}
